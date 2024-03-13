@@ -51,7 +51,9 @@ else
             {
                 if (!tslot.IsOpen)
                 {
-                    <li>@tslot.StartTime.ToLocalTime() with @tslot.PeerUserFullName at @tslot.PeerPhone</li>
+                    <li>@tslot.StartTime.ToLocalTime() with @tslot.PeerUserFullName at @tslot.PeerPhone
+
+                        </li>
                 }
             }
         </ol>
@@ -111,7 +113,10 @@ else
     Snackbar snackbar;
 
     private EditContext EditContext;
-    private TimeSample TimeSample = new TimeSample() { Date = DateTime.Today, Time = DateTime.Now };
+
+
+    public TimeSample TimeSample { get; set; }
+
 
 
     private void ChangeCoach(ChangeEventArgs e)
@@ -137,6 +142,14 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        TimeSample = new TimeSample()
+        {
+            Date = DateTime.Today,
+            Time = DateTime.Now
+        };
+        TimeSample.Time = TimeSample.Time.AddSeconds(-TimeSample.Time.Second);       // Set to 0 seconds
+
+
         EditContext = new EditContext(TimeSample);
 
         var x = await CoachService.GetAllAsync();
