@@ -35,12 +35,12 @@
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.2" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid" Version="8.0.3" />
-    <PackageReference Include="Blazorise.Bootstrap" Version="1.4.2" />
-    <PackageReference Include="Blazorise.Icons.FontAwesome" Version="1.4.2" />
-    <PackageReference Include="Blazorise.Components" Version="1.4.2" />
-    <PackageReference Include="Blazorise.DataGrid" Version="1.4.2" />
-    <PackageReference Include="Blazorise.Bootstrap5" Version="1.4.2" />
-    <PackageReference Include="Blazorise.Snackbar" Version="1.4.2" />
+    <PackageReference Include="Blazorise.Bootstrap" Version="1.4.3" />
+    <PackageReference Include="Blazorise.Icons.FontAwesome" Version="1.4.3" />
+    <PackageReference Include="Blazorise.Components" Version="1.4.3" />
+    <PackageReference Include="Blazorise.DataGrid" Version="1.4.3" />
+    <PackageReference Include="Blazorise.Bootstrap5" Version="1.4.3" />
+    <PackageReference Include="Blazorise.Snackbar" Version="1.4.3" />
   </ItemGroup>
 
   <ItemGroup>
