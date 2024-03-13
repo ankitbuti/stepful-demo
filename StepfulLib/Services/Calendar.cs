@@ -1,4 +1,7 @@
-﻿namespace StepfulLib;
+﻿using MongoDB.Bson;
+using MongoDB.Driver;
+
+namespace StepfulLib;
 
 public class TimeSlot
 {
@@ -8,6 +11,7 @@ public class TimeSlot
 
     public TimeSlot(DateTime t)
     {
+        Id = ObjectId.GenerateNewId().ToString();
         StartTime = t;
     }
 
@@ -15,7 +19,7 @@ public class TimeSlot
     {
         get
         {
-            return StartTime.AddHours(2);               // As Per Use Case
+            return StartTime.AddHours(2);               // As Per Given Use Case
         }
     }
     
@@ -23,7 +27,7 @@ public class TimeSlot
     {
         get
         {
-            return !String.IsNullOrEmpty(StudentId);
+            return String.IsNullOrEmpty(StudentId);
         }
     }
 

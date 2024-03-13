@@ -212,10 +212,28 @@ public class CoachService : ICoachService
             c.Calendar = new List<TimeSlot>();
         }
 
-        TimeSlot s1 = new TimeSlot(slot);
-        c.Calendar.Add(s1);
-        return Update(c.Id, c);
+        c.Calendar = c.Calendar.OrderBy(c => c.StartTime).ToList();
 
+        TimeSlot s1 = new TimeSlot(slot);
+        bool allow = true;
+
+        foreach(TimeSlot s in c.Calendar)
+        {
+            if(s1.StartTime.Subtract(s.EndTime.ToUniversalTime()).Minutes < 0)
+            {
+                allow = false;
+                break;
+            }
+        }
+
+        if(allow)
+        {
+            c.Calendar.Add(s1);
+            return Update(c.Id, c);
+        }
+
+        SLog.Write("Time Conflict. Can't create a new slot");
+        return null;
     }
 }
 

@@ -58,3 +58,26 @@
         }
         return slots;
     }
+
+
+<PageTitle>Student</PageTitle>
+<h1>Student View</h1>
+<hr />
+
+<InputText @bind-Value="student.Email" placeholder="Enter student email" />
+<button class="btn btn-primary" @onclick="CreateStudent">Create Student</button>
+
+<p>Pick a Student: </p>
+<select @bind="selectedStudent">
+    @foreach (var item in items)
+    {
+        <option value="@item">@item</option>
+    }
+</select>
+
+<p role="status">Name: @student.FullName</p>
+
+<button class="btn btn-primary" @onclick="GetAllStudents">Get Students</button>
+
+
+<br />

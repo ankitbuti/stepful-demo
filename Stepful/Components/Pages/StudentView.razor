@@ -9,61 +9,150 @@
 @inject IHttpClientFactory ClientFactory
 
 @inject IStudentService StudentService
-@inject IAgent Agent 
+@inject ICoachService CoachService
+@inject IAgent Agent
 
 @using StepfulLib;
 
 <PageTitle>Student</PageTitle>
 <h1>Student View</h1>
+
+<div>
+    @if (SelectedStudent != null)
+    {
+
+        <select @onchange="ChangeStudent">
+            @foreach (var item in Students)
+            {
+                <option value="@item.FullName">@item.FullName</option>
+            }
+        </select>
+    }
+</div>
 <hr />
 
-<InputText @bind-Value="student.Email" placeholder="Enter student email" />
-<button class="btn btn-primary" @onclick="CreateStudent">Create Student</button>
+@if (SelectedStudent == null)
+{
+    <h3>No Student Selected.</h3>
+}
+else
+{
+    <h4>@SelectedStudent.FullName 's  Booked Slots:</h4>
 
-<p>Pick a Student: </p>
-<select @bind="selectedStudent">
-    @foreach (var item in items)
+    @if (SelectedStudent.Calendar != null)
     {
-        <option value="@item">@item</option>
+        <ol>
+            @foreach (TimeSlot tslot in SelectedStudent.Calendar)
+            {
+                <li>@tslot.StartTime</li>
+            }
+        </ol>
     }
-</select>
+    else
+    {
+        <p>No Booked Slots in System.</p>
+    }
 
-<p role="status">Name: @student.FullName</p>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Select Coach to Find Available and Book Slots:</h5>
+            <p class="card-text">
+                @if (SelectedCoach != null)
+                {
 
-<button class="btn btn-primary" @onclick="GetAllStudents">Get Students</button>
+                    <select @onchange="ChangeCoach">
+                        @foreach (var item in Coaches)
+                        {
+                            <option value="@item.FullName">@item.FullName</option>
+                        }
+                    </select>
 
 
-<br />
+                    @if (SelectedCoach.Calendar != null)
+                    {
+                        <ol>
+                            @foreach (TimeSlot tslot in SelectedCoach.Calendar)
+                                {
+                                    if (tslot.IsOpen)
+                                    {
+                                        <li>@tslot.StartTime.ToLocalTime() -  <a class="btn btn-primary" @onclick="BookSlot">Book</a></li>
+                                    }
+                                }
+                        </ol>
+                    }
+                    else
+                    {
+                        <p>No Available Slots for: @SelectedCoach.FullName</p>
+                    }
+                }
 
+               
+                </p>
+            </div>
+    </div>
+
+}
 
 
 @code {
 
-    public Student student { get; set; }
-    List<Student> items = new List<Student>();
+    private Student SelectedStudent { get; set; }
+    private List<Student> Students { get; set; }
+    private Coach SelectedCoach { get; set; }
+    private List<Coach> Coaches { get; set; }
 
-    /*
-    public StudentController studentController { get; set; }
-    public StudentService studentService { get; set; }
+    private IEnumerable<Student>? data = null;
+    private bool getDataError;
+    //private bool shouldRender;
 
-    // Define the list of items
+    //protected override bool ShouldRender() => shouldRender;
 
-    */
+    private void BookSlot()
+{
 
-    // Define a property to bind the selected item
-    public string selectedStudent { get; set; }
-    public string selectedCoach { get; set; }
+}
+
+    private void ChangeStudent(ChangeEventArgs e)
+    {
+        var selectedString = e.Value.ToString();
+        foreach (Student s in Students)
+        {
+            if (string.Equals(s.FullName, selectedString))
+            {
+                SelectedStudent = s;
+                break;
+            }
+        }
+    }
+
+    private void ChangeCoach(ChangeEventArgs e)
+    {
+        var selectedString = e.Value.ToString();
+        foreach (Coach c in Coaches)
+        {
+            if (string.Equals(c.FullName, selectedString))
+            {
+                SelectedCoach = c;
+                break;
+            }
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
+        var x = await CoachService.GetAllAsync();
+        Coaches = x.ToList();
+        if (Coaches != null && Coaches.Count > 0)
+        {
+            SelectedCoach = Coaches[0];
+        }
 
-        
-        student = new Student("Test");
-    }
-
-    private void CreateStudent()
-    {
-        StudentService.Create(student.Email);
+        var y = await StudentService.GetAllAsync();
+        Students = y.ToList();
+        if (Students != null && Students.Count > 0)
+        {
+            SelectedStudent = Students[0];
+        }
     }
 
 
@@ -72,34 +161,17 @@
         //JS.InvokeVoidAsync("alert", "Getting All Data...");
         //var x = GetAllData().Result;
 
-        Client_Student client_Student = new Client_Student(Http);
+        //Client_Student client_Student = new Client_Student(Http);
         //var y = client_Student.GetAllAsync().Result;
 
-
-
-        StudentController studentController = new StudentController(StudentService);
-        var z = studentController.GetAll();
+        //StudentController studentController = new StudentController(StudentService);
+        // var z = studentController.GetAll();
 
         //JS.InvokeVoidAsync("alert", x.ToString());
     }
-
-    
-
-
-   
-
-    private IEnumerable<Student>? data = null;
-    private bool getDataError;
-    private bool shouldRender;
-
-    protected override bool ShouldRender() => shouldRender;
-
-    protected async Task<IEnumerable<Student>> GetAllData()
+    protected async Task<IEnumerable<Student>> GetAllDataViaApi()       // Sample, Not In Use
     {
         var request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:4297/api/v1/student");
-        //request.Headers.Add("Accept", "application/vnd.github.v3+json");
-        //request.Headers.Add("User-Agent", "HttpClientFactory-Sample");
-        //var client = ClientFactory.CreateClient();
 
         var response = await Http.SendAsync(request);
 
@@ -113,7 +185,7 @@
             data = null;
         }
 
-        shouldRender = true;
+        //shouldRender = true;
         return data;
     }
 }

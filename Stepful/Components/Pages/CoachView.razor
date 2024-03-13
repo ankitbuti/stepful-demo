@@ -12,7 +12,7 @@
     @if (SelectedCoach != null)
     {
 
-        <select @bind="SelectedCoach.FullName">
+        <select @onchange="ChangeCoach">
             @foreach (var item in Coaches)
             {
                 <option value="@item.FullName">@item.FullName</option>
@@ -35,66 +35,80 @@ else
         <ol>
             @foreach (TimeSlot tslot in SelectedCoach.Calendar)
             {
-                <li>@tslot.StartTime</li>
+                <li>@tslot.StartTime.ToLocalTime()</li>
             }
         </ol>
     }
     else
     {
-            <p>No Slots in System.</p>
+        <p>No Slots in System.</p>
     }
 
 
 }
 
-<div class="card">
-    <div class="card-body">
-        <h5 class="card-title">Pick a Date &amp; Time</h5>
-        <p class="card-text">
+@if (SelectedCoach != null)
+{
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Pick a Date &amp; Time</h5>
+            <p class="card-text">
 
-            <div class="wrapper">
-                <section class="createevent">
-                    <EditForm EditContext="@EditContext" OnValidSubmit="@HandleValidSubmit" OnInvalidSubmit="@HandleInvalidSubmit">
-                        <DataAnnotationsValidator />
-                        <div class="form-group">
-                            <p>
-                                <input id="txtDate" type="date" required @bind-value="TimeSample.Date" />
-                                <ValidationMessage For="@(() => TimeSample.Date)" />
+                <div class="wrapper">
+                    <section class="createevent">
+                        <EditForm EditContext="@EditContext" OnValidSubmit="@HandleValidSubmit" OnInvalidSubmit="@HandleInvalidSubmit">
+                            <DataAnnotationsValidator />
+                            <div class="form-group">
+                                <p>
+                                    <input id="txtDate" type="date" required @bind-value="TimeSample.Date" />
+                                    <ValidationMessage For="@(() => TimeSample.Date)" />
 
-                                <input id="txtTime" type="time" required @bind="TimeSample.Time" />
-                                <ValidationMessage For="@(() => TimeSample.Time)" />
-                            </p>
-                        </div>
-                    </EditForm>
-                </section>
-            </div>
-
-
-
-        </p>
-        <a class="btn btn-primary" @onclick="CreateSlot">Add Slot</a>
+                                    <input id="txtTime" type="time" required @bind="TimeSample.Time" />
+                                    <ValidationMessage For="@(() => TimeSample.Time)" />
+                                </p>
+                            </div>
+                        </EditForm>
+                    </section>
+                </div>
+                <a class="btn btn-primary" @onclick="CreateSlot">Add Slot</a>
+            </p>
+        </div>
     </div>
-</div>
+}
 
-<Button Clicked="@(()=>snackbar.Show())">Snackbar</Button>
+@* <Button class="btn btn-primary" Clicked="@(()=>snackbar.Show())">Say Hello!</Button> *@
 
 <Snackbar @ref="snackbar">
     <SnackbarBody>
-        Single line of text directly related to the operation performed
+        Hello!
     </SnackbarBody>
 </Snackbar>
 
-   
+
 
 
 @code {
-        private Coach SelectedCoach { get; set; }
-        private List<Coach> Coaches { get; set; }
+    private Coach SelectedCoach { get; set; }
+    private List<Coach> Coaches { get; set; }
 
-        Snackbar snackbar;
+    Snackbar snackbar;
 
-        private EditContext EditContext;
-        private TimeSample TimeSample = new TimeSample() { Date = DateTime.Today, Time=DateTime.Now };
+    private EditContext EditContext;
+    private TimeSample TimeSample = new TimeSample() { Date = DateTime.Today, Time = DateTime.Now };
+
+
+    private void ChangeCoach(ChangeEventArgs e)
+    {
+        var selectedString = e.Value.ToString();
+        foreach (Coach c in Coaches)
+        {
+            if (string.Equals(c.FullName, selectedString))
+            {
+                SelectedCoach = c;
+                break;
+            }
+        }
+    }
 
     private void HandleValidSubmit()
     {
@@ -109,13 +123,25 @@ else
         EditContext = new EditContext(TimeSample);
 
         var x = await CoachService.GetAllAsync();
-        Coaches = x.ToList();
-        SelectedCoach = Coaches[0];
+        Coaches = x.OrderBy(x => x.FullName).ToList();
+        if (Coaches != null && Coaches.Count > 0)
+        {
+            SelectedCoach = Coaches[0];
+        }
     }
+
+    // TBD Verify Algo
     private void CreateSlot()
     {
-        DateTime slot = TimeSample.Date.Date + TimeSample.Time.TimeOfDay;
-        CoachService.AddSlot(SelectedCoach, slot);
+        TimeSample.Date = TimeSample.Date.Date + TimeSample.Time.TimeOfDay;
+        TimeSample.Time = TimeSample.Date;
+        DateTime slot = TimeSample.Date;            // New var, to not affect UI Data Binding
+        slot = slot.ToUniversalTime();
+        var result = CoachService.AddSlot(SelectedCoach, slot);
+        if (result == null)
+        {
+            JS.InvokeVoidAsync("alert", "Conflict. Time Slots must have a 2 hour gap.");
+        }
     }
 
 }
