@@ -28,7 +28,7 @@
 
 <p><b>Author: </b>Ankit Buti (ankitbuti@gmail.com)</p>
 <p><b>Role: </b> Growth Engineering</p>
-<p><b>Date Published:</b> March 12, 2024</p>
+<p><b>Date Published:</b> March 13, 2024</p>
 
 <hr />
 <br />
@@ -47,58 +47,64 @@
 
 @code {
     protected override async Task OnInitializedAsync()
-    {
-    }
-
-    private async Task<bool> Flush()
-    {
-        try
         {
-            StudentService.DeleteAll();
-            CoachService.DeleteAll();
-            await JS.InvokeVoidAsync("alert", "All Data is Flushed. Database is Empty.");
-            return true;
         }
-        catch (Exception ex)
+
+        private async Task<bool> Flush()
         {
-            SLog.Write(ex.Message);
-            return false;
-        }
-    }
-
-    public async Task<bool> Bootstrap()
-    {
-        string result = Agent.Echo("bootstrap");
-        SLog.Write(result);
-
-        //var y = Agent.Create("You are a helpful scheduling agent for students and coaches. You speak can read write in all languages.");
-        //var x = Agent.AIKernel.InvokeAsync(y).Result.ToString();
-        //int random = Utility.GenerateRandomNumber(1, 10);
-
-        List<Coach> coaches;
-        List<Student> students;
-
-        try
-        {
-            coaches = await Http.GetFromJsonAsync<List<Coach>>("datasets/coaches.json");
-            students = await Http.GetFromJsonAsync<List<Student>>("datasets/students.json");
-
-            foreach (Student s in students)
+            try
             {
-                //StudentService.Create(s.Email);
-                StudentService.Save(s);
+                StudentService.DeleteAll();
+                CoachService.DeleteAll();
+                await JS.InvokeVoidAsync("alert", "All Data is Flushed. Database is Empty.");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                SLog.Write(ex.Message);
+                return false;
+            }
+        }
+
+        public async Task<bool> Bootstrap()
+        {
+            string result = Agent.Echo("Bootstraping...");
+            SLog.Write(result);
+
+            //var y = Agent.Create("You are a helpful scheduling agent for students and coaches. You speak can read write in all languages.");
+            //var x = Agent.AIKernel.InvokeAsync(y).Result.ToString();
+            //int random = Utility.GenerateRandomNumber(1, 10);
+
+            try
+            {
+                List<Coach> coaches = await Http.GetFromJsonAsync<List<Coach>>("datasets/coaches.json");
+                List<Student> students = await Http.GetFromJsonAsync<List<Student>>("datasets/students.json");
+
+                foreach (Student s in students)
+                {
+                    //StudentService.Create(s.Email);
+                    StudentService.Save(s);
+                }
+
+                SLog.Write("Student Data Loaded.");
+
+                foreach (Coach c in coaches)
+                {
+                    CoachService.Save(c);
+                }
+
+                SLog.Write("Coach Data Loaded.");
+
+                await JS.InvokeVoidAsync("alert", "Database has been loaded with Test Users.");
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                SLog.Write("Bootstrap Failed....");
+                SLog.Write(ex.Message);
+                return false;
             }
 
-            foreach (Coach c in coaches)
-            {
-                CoachService.Save(c);
-            }
-            await JS.InvokeVoidAsync("alert", "Database has been loaded with Test Users.");
         }
-        catch (Exception ex)
-        {
-            SLog.Write(ex.Message);
-        }
-        return false;
     }
-}
