@@ -1,0 +1,104 @@
+﻿@page "/"
+
+@rendermode InteractiveServer
+@inject IJSRuntime JS
+
+@using StepfulLib   
+@inject IStudentService StudentService
+@inject ICoachService CoachService
+@inject IAgent Agent
+
+@inject HttpClient Http
+
+@using System.Net.Http
+@using System.Net.Http.Json
+
+@using Microsoft.SemanticKernel
+
+<PageTitle>Home</PageTitle>
+
+<div style="text-center" align="center">
+    <h1><img src="imgs/logo.png" alt="Logo" /> Coaching Scheduler</h1>
+</div>
+
+<h2>Welcome! </h2>
+
+<hr />
+<br />
+
+<p><b>Author: </b>Ankit Buti (ankitbuti@gmail.com)</p>
+<p><b>Role: </b> Growth Engineering</p>
+<p><b>Date Published:</b> March 12, 2024</p>
+
+<hr />
+<br />
+
+<h3>Notes</h3>
+<p>
+    * Use the Left Menu to Get Started. <br />
+    * As per instructions <a href="https://stepful.notion.site/Stepful-engineering-interview-25c570455e1d471494cf2cb893e2eb7a">here</a>. No authentication or user-creation is built. <br />
+    * Use the below 2 ACTIONS to Try The App!
+</p>
+
+<p>
+    <button class="btn btn-primary" @onclick="Flush">Flush DB</button>
+    <button class="btn btn-primary" @onclick="Bootstrap">Bootstrap DB</button>
+</p>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+    }
+
+    private async Task<bool> Flush()
+    {
+        try
+        {
+            StudentService.DeleteAll();
+            CoachService.DeleteAll();
+            await JS.InvokeVoidAsync("alert", "All Data is Flushed. Database is Empty.");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            SLog.Write(ex.Message);
+            return false;
+        }
+    }
+
+    public async Task<bool> Bootstrap()
+    {
+        string result = Agent.Echo("bootstrap");
+        SLog.Write(result);
+
+        var y = Agent.Create("You are a helpful scheduling agent for students and coaches. You speak can read write in all languages.");
+        var x = Agent.AIKernel.InvokeAsync(y).Result.ToString();
+        int random = Utility.GenerateRandomNumber(1, 10);
+
+        List<Coach> coaches;
+        List<Student> students;
+
+        try
+        {
+            coaches = await Http.GetFromJsonAsync<List<Coach>>("datasets/coaches.json");
+            students = await Http.GetFromJsonAsync<List<Student>>("datasets/students.json");
+
+            foreach (Student s in students)
+            {
+                //StudentService.Create(s.Email);
+                StudentService.Save(s);
+            }
+
+            foreach (Coach c in coaches)
+            {
+                CoachService.Save(c);
+            }
+            await JS.InvokeVoidAsync("alert", "Database has been loaded with Test Users.");
+        }
+        catch (Exception ex)
+        {
+            SLog.Write(ex.Message);
+        }
+        return false;
+    }
+}

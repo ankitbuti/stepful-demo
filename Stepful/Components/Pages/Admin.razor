@@ -1,0 +1,113 @@
+﻿@page "/admin"
+@rendermode InteractiveServer
+
+@using System.Net.Http
+@using System.Net.Http.Json
+@using Microsoft.SemanticKernel
+@using Microsoft.AspNetCore.Components.QuickGrid
+
+@using StepfulLib
+
+@inject IStudentService StudentService
+@inject ICoachService CoachService
+@inject IAgent Agent
+
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+<PageTitle>Admin</PageTitle>
+<h1>Admin View</h1>
+<hr />
+
+<h3>Coaches <i class="fa-solid fa-circle-plus" @onclick="@CreateCoach"></i></h3>
+
+@if (Coaches != null && Coaches.Count() > 0)
+{
+    <QuickGrid Items="@Coaches" OnRowClick="HandleCoachRowClick" style="width:100%;">
+        <PropertyColumn Property="@(p => p.Id)" Sortable="true" />
+        <PropertyColumn Property="@(p => p.FullName)" Sortable="true" />
+        <PropertyColumn Property="@(p => p.Email)" Sortable="true" />
+        <PropertyColumn Property="@(p => p.PhoneNumber)" Sortable="true" />
+        <TemplateColumn Title="Edit">
+            <i class="fa fa-pencil" @onclick="@(() => UpdateCoach(context))"></i>
+        </TemplateColumn>
+        <TemplateColumn Title="Delete">
+            <i class="fa-solid fa-trash" @onclick="@(() => DeleteCoach(context))"></i>
+        </TemplateColumn>
+    </QuickGrid>
+}
+
+<br />
+
+<h3>Students <i class="fa-solid fa-circle-plus" @onclick="@CreateStudent"></i></h3>
+@if (Students != null && Students.Count() > 0)
+{
+
+    <QuickGrid Items="@Students" OnRowClick="HandleStudentRowClick" style="width:100%;">
+        <PropertyColumn Property="@(p => p.Id)" Sortable="true" />
+        <PropertyColumn Property="@(p => p.FullName)" Sortable="true" />
+        <PropertyColumn Property="@(p => p.Email)" Sortable="true" />
+        <PropertyColumn Property="@(p => p.PhoneNumber)" Sortable="true" />
+        <TemplateColumn Title="Edit">
+            <i class="fa fa-pencil" @onclick="@(() => UpdateStudent(context))"></i>
+        </TemplateColumn>
+        <TemplateColumn Title="Delete">
+            <i class="fa-solid fa-trash" @onclick="@(() => DeleteStudent(context))"></i>
+        </TemplateColumn>
+    </QuickGrid>
+}
+
+
+
+@code {
+
+    private IQueryable<Student> Students { get; set; }
+    private IQueryable<Coach> Coaches { get; set; }
+
+    private void CreateCoach()
+    {
+        SLog.Write("Create Coach");
+    }
+
+    private void CreateStudent()
+    {
+        SLog.Write("Create Student");
+    }
+
+    private void DeleteStudent(Student student)
+    {
+        //Students.Remove(student);
+        SLog.Write("Delete Student: " + student.FullName);
+        // Optionally, trigger any necessary StateHasChanged() or data refresh operations
+    }
+
+    private void UpdateStudent(Student student)
+    {
+        SLog.Write("Update Student: " + student.FullName);
+    }
+
+    private void DeleteCoach(Coach coach)
+    {
+        SLog.Write("Delete Coach: " + coach.FullName);
+    }
+
+    private void UpdateCoach(Coach coach)
+    {
+        SLog.Write("Update Coach: " + coach.FullName);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var s = await StudentService.GetAllAsync();
+
+        var c = await CoachService.GetAllAsync();
+        if(s != null)
+        {
+            Students = s.AsQueryable();
+        }
+        if(c != null)
+        {
+            Coaches = c.AsQueryable();
+        }
+    }
+}

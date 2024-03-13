@@ -1,0 +1,119 @@
+﻿@page "/student"
+
+@rendermode InteractiveServer
+@inject IJSRuntime JS
+
+@using System.Net.Http
+@inject HttpClient Http
+@using System.Text.Json
+@inject IHttpClientFactory ClientFactory
+
+@inject IStudentService StudentService
+@inject IAgent Agent 
+
+@using StepfulLib;
+
+<PageTitle>Student</PageTitle>
+<h1>Student View</h1>
+<hr />
+
+<InputText @bind-Value="student.Email" placeholder="Enter student email" />
+<button class="btn btn-primary" @onclick="CreateStudent">Create Student</button>
+
+<p>Pick a Student: </p>
+<select @bind="selectedStudent">
+    @foreach (var item in items)
+    {
+        <option value="@item">@item</option>
+    }
+</select>
+
+<p role="status">Name: @student.FullName</p>
+
+<button class="btn btn-primary" @onclick="GetAllStudents">Get Students</button>
+
+
+<br />
+
+
+
+@code {
+
+    public Student student { get; set; }
+    List<Student> items = new List<Student>();
+
+    /*
+    public StudentController studentController { get; set; }
+    public StudentService studentService { get; set; }
+
+    // Define the list of items
+
+    */
+
+    // Define a property to bind the selected item
+    public string selectedStudent { get; set; }
+    public string selectedCoach { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        
+        student = new Student("Test");
+    }
+
+    private void CreateStudent()
+    {
+        StudentService.Create(student.Email);
+    }
+
+
+    private void GetAllStudents()
+    {
+        //JS.InvokeVoidAsync("alert", "Getting All Data...");
+        //var x = GetAllData().Result;
+
+        Client_Student client_Student = new Client_Student(Http);
+        //var y = client_Student.GetAllAsync().Result;
+
+
+
+        StudentController studentController = new StudentController(StudentService);
+        var z = studentController.GetAll();
+
+        //JS.InvokeVoidAsync("alert", x.ToString());
+    }
+
+    
+
+
+   
+
+    private IEnumerable<Student>? data = null;
+    private bool getDataError;
+    private bool shouldRender;
+
+    protected override bool ShouldRender() => shouldRender;
+
+    protected async Task<IEnumerable<Student>> GetAllData()
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:4297/api/v1/student");
+        //request.Headers.Add("Accept", "application/vnd.github.v3+json");
+        //request.Headers.Add("User-Agent", "HttpClientFactory-Sample");
+        //var client = ClientFactory.CreateClient();
+
+        var response = await Http.SendAsync(request);
+
+        if (response.IsSuccessStatusCode)
+        {
+            using var responseStream = await response.Content.ReadAsStreamAsync();
+            data = await JsonSerializer.DeserializeAsync<IEnumerable<Student>>(responseStream);
+        }
+        else
+        {
+            data = null;
+        }
+
+        shouldRender = true;
+        return data;
+    }
+}

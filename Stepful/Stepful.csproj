@@ -1,0 +1,70 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Configurations>Debug;Release;Stepful Only</Configurations>
+    <DockerComposeProjectPath>../docker-compose.dcproj</DockerComposeProjectPath>
+    <UserSecretsId>04ac50d0-c7bc-4c56-8ed0-88337dd768ca</UserSecretsId>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(RunConfiguration)' == 'https' " />
+  <PropertyGroup Condition=" '$(RunConfiguration)' == 'http' " />
+  <ItemGroup>
+    <Compile Remove="Controllers\**" />
+    <Compile Remove="Models\**" />
+    <Compile Remove="Services\**" />
+    <Content Remove="Controllers\**" />
+    <Content Remove="Models\**" />
+    <Content Remove="Services\**" />
+    <EmbeddedResource Remove="Controllers\**" />
+    <EmbeddedResource Remove="Models\**" />
+    <EmbeddedResource Remove="Services\**" />
+    <None Remove="Controllers\**" />
+    <None Remove="Models\**" />
+    <None Remove="Services\**" />
+    <None Remove="Clients\" />
+    <Content Remove="wwwroot\datasets\" />
+    <Content Remove="wwwroot\logo.png" />
+    <Content Remove="wwwroot\imgs\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.3" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.2" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid" Version="8.0.3" />
+    <PackageReference Include="Blazorise.Bootstrap" Version="1.4.2" />
+    <PackageReference Include="Blazorise.Icons.FontAwesome" Version="1.4.2" />
+    <PackageReference Include="Blazorise.Components" Version="1.4.2" />
+    <PackageReference Include="Blazorise.DataGrid" Version="1.4.2" />
+    <PackageReference Include="Blazorise.Bootstrap5" Version="1.4.2" />
+    <PackageReference Include="Blazorise.Snackbar" Version="1.4.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Clients\" />
+    <Folder Include="wwwroot\datasets\" />
+    <Folder Include="wwwroot\imgs\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Update="wwwroot\datasets\dataset1.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\datasets\dataset1 %28copy%29.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\datasets\coaches.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\datasets\students.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\StepfulLib\StepfulLib.csproj">
+      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
+    </ProjectReference>
+  </ItemGroup>
+</Project>
