@@ -44,7 +44,7 @@ else
         <ol>
             @foreach (TimeSlot tslot in SelectedStudent.Calendar)
             {
-                <li>@tslot.StartTime</li>
+                <li>@tslot.StartTime  with @tslot.PeerUserFullName at @tslot.PeerPhone</li>
             }
         </ol>
     }
@@ -75,7 +75,7 @@ else
                                 {
                                     if (tslot.IsOpen)
                                     {
-                                        <li>@tslot.StartTime.ToLocalTime() -  <a class="btn btn-primary" @onclick="BookSlot">Book</a></li>
+                                        <li>@tslot.StartTime.ToLocalTime()  <a class="btn btn-primary" @onclick="() => BookSlot(tslot)">Book</a></li>
                                     }
                                 }
                         </ol>
@@ -107,10 +107,29 @@ else
 
     //protected override bool ShouldRender() => shouldRender;
 
-    private void BookSlot()
-{
+    private bool BookSlot(TimeSlot slot)
+    {
+        if (slot == null)
+            return false;
 
-}
+        slot.PeerUserFullName = SelectedStudent.FullName;
+        slot.PeerPhone = SelectedStudent.PhoneNumber;
+        CoachService.Update(SelectedCoach.Id, SelectedCoach);
+
+        if (SelectedStudent.Calendar == null)
+        {
+            SelectedStudent.Calendar = new List<TimeSlot>();
+        }
+
+        slot.PeerUserFullName = SelectedCoach.FullName;
+        slot.PeerPhone = SelectedCoach.PhoneNumber;
+        SelectedStudent.Calendar.Add(slot);
+
+        StudentService.Update(SelectedStudent.Id, SelectedStudent);
+
+        JS.InvokeVoidAsync("alert", "Booking Success.");
+        return true;
+    }
 
     private void ChangeStudent(ChangeEventArgs e)
     {
@@ -141,14 +160,14 @@ else
     protected override async Task OnInitializedAsync()
     {
         var x = await CoachService.GetAllAsync();
-        Coaches = x.ToList();
+        Coaches = x.OrderBy(x => x.FullName).ToList();
         if (Coaches != null && Coaches.Count > 0)
         {
             SelectedCoach = Coaches[0];
         }
 
         var y = await StudentService.GetAllAsync();
-        Students = y.ToList();
+        Students = y.OrderBy(y => y.FullName).ToList();
         if (Students != null && Students.Count > 0)
         {
             SelectedStudent = Students[0];

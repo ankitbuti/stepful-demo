@@ -32,10 +32,27 @@ else
 
     @if (SelectedCoach.Calendar != null)
     {
+        <p><b>Open Slots:</b></p>
         <ol>
             @foreach (TimeSlot tslot in SelectedCoach.Calendar)
             {
-                <li>@tslot.StartTime.ToLocalTime()</li>
+                if (tslot.IsOpen)
+                {
+                    <li>@tslot.StartTime.ToLocalTime()</li>
+                }
+            }
+        </ol>
+
+        <br />
+
+        <p><b>Booked Slots:</b></p>
+        <ol>
+            @foreach (TimeSlot tslot in SelectedCoach.Calendar)
+            {
+                if (!tslot.IsOpen)
+                {
+                    <li>@tslot.StartTime.ToLocalTime() with @tslot.PeerUserFullName at @tslot.PeerPhone</li>
+                }
             }
         </ol>
     }

@@ -6,7 +6,8 @@ namespace StepfulLib;
 public class TimeSlot
 {
     public string Id { get; set; }
-    public string StudentId { get; set; }               // If booked by student
+    public string PeerUserFullName { get; set; }               // Not Null - If booked
+    public string PeerPhone { get; set; }
     public DateTime StartTime { get; set; }
 
     public TimeSlot(DateTime t)
@@ -27,7 +28,7 @@ public class TimeSlot
     {
         get
         {
-            return String.IsNullOrEmpty(StudentId);
+            return String.IsNullOrEmpty(PeerUserFullName);
         }
     }
 
