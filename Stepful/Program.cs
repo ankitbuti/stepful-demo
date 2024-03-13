@@ -20,8 +20,6 @@ public class Program {
 
         var builder = WebApplication.CreateBuilder(args);
 
-        //builder.Services.AddOpenAIChatCompletion("gpt-3.5-turbo", "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");
-
         var dbConfig = builder.Configuration.GetSection("DatabaseSettings");
         DatabaseSettings dbSettings = new DatabaseSettings();
         dbConfig.Bind(dbSettings);
