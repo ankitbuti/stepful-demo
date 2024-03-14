@@ -90,7 +90,7 @@ public class Program {
         app.UseStaticFiles();
         app.UseAntiforgery();
         app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
-        app.Run();
-        //app.Run("http://0.0.0.0:8080");     // For Docker Cloud Deployment
+        //app.Run();
+        app.Run("http://0.0.0.0:8080");     // For Docker Cloud Deployment
     }
 }
