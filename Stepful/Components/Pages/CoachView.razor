@@ -202,8 +202,14 @@ else
             JS.InvokeVoidAsync("alert", "Conflict. Time Slots must have a 2 hour gap.");
 
         }
-        //ShowToast("New Slot Added.");
-        ToastService.ShowToast("New Slot Added.");
+        else
+        {
+            JS.InvokeVoidAsync("alert", "New Slot Added.");
+            //ToastService.ShowToast("New Slot Added.");
+            //ShowToast("New Slot Added.");
+    
+        }
+    
     }
 
     private async Task<bool> DeleteSlot(TimeSlot tslot)

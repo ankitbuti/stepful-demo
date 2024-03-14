@@ -14,6 +14,7 @@ public class Coach : IUser
     public string? PhoneNumber { get; set; }
     public string? ProfilePicUrl { get; set; }
     public List<TimeSlot> Calendar { get; set; }
+    public int Ratings { get; set; }
 
     public Location Location { get; set; }
     public string Timezone { get; set; }
