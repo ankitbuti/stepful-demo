@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.10.34607.79
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StepfulLib", "StepfulLib\StepfulLib.csproj", "{24F1054B-090B-4AA3-B4FC-A208A58B7B95}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StepfulLib", "StepfulLib\StepfulLib.csproj", "{24F1054B-090B-4AA3-B4FC-A208A58B7B95}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stepful", "Stepful\Stepful.csproj", "{9EC1AB61-E998-4516-B60F-3E3A6654E44B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stepful", "Stepful\Stepful.csproj", "{9EC1AB61-E998-4516-B60F-3E3A6654E44B}"
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{1001ECBC-ED1C-42D9-88EF-143D8E2A0511}"
 EndProject

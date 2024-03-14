@@ -57,6 +57,7 @@ public class Program {
             return new CoachService(dbSettings);
         });
 
+        builder.Services.AddScoped<ToastService>();
 
         builder.Services.AddScoped(sp =>
         new HttpClient
@@ -87,7 +88,7 @@ public class Program {
         app.UseStaticFiles();
         app.UseAntiforgery();
         app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
-        app.Run();
-        //app.Run("http://0.0.0.0:8080");     // For Docker Cloud Deployment
+        //app.Run();
+        app.Run("http://0.0.0.0:8080");     // For Docker Cloud Deployment
     }
 }

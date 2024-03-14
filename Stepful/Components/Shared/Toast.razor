@@ -1,0 +1,57 @@
+﻿@using StepfulLib
+
+@implements IDisposable
+@inject ToastService ToastService
+
+
+<Snackbar @ref="Snackbar">
+    <SnackbarBody>
+        @Message
+    </SnackbarBody>
+</Snackbar>
+
+@if (isVisible)
+{
+    <div class="toast">
+        @Message
+    </div>
+}
+
+
+@code {
+    public Snackbar Snackbar { get; set; }
+
+    [Parameter]
+    public string Message { get; set; }
+
+    private bool isVisible = false;
+    public void ShowToast(string message)
+    {
+        this.Message = message;
+        Snackbar.Show();
+    }
+  
+
+    protected override void OnInitialized()
+    {
+       ToastService.OnShow += ShowMessage;
+    }
+
+    private void ShowMessage(string message)
+    {
+        this.Message = message;
+        isVisible = true;
+        StateHasChanged();
+        // Optionally, hide the snackbar after some delay
+        Task.Delay(3000).ContinueWith(_ =>
+        {
+            isVisible = false;
+            StateHasChanged();
+        });
+    }
+
+    public void Dispose()
+    {
+        ToastService.OnShow -= ShowMessage;
+    }
+}

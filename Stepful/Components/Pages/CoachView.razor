@@ -4,6 +4,7 @@
 @rendermode InteractiveServer
 @inject IJSRuntime JS
 @inject ICoachService CoachService
+@inject ToastService ToastService
 
 <PageTitle>Coach</PageTitle>
 <h1>Coach View</h1>
@@ -96,14 +97,8 @@ else
 }
 
 <br />
- <Button class="btn btn-primary" Clicked="@(()=>snackbar.Show())">Say Hello!</Button> 
-
-<Snackbar @ref="snackbar">
-    <SnackbarBody>
-        Hello!
-    </SnackbarBody>
-</Snackbar>
-
+ 
+@* <Button class="btn btn-primary" Clicked="@(()=>ShowToast("Ankit"))">Say Hello!</Button> *@
 
 
 
@@ -111,13 +106,11 @@ else
     private Coach SelectedCoach { get; set; }
     private List<Coach> Coaches { get; set; }
 
-    Snackbar snackbar;
 
     private EditContext EditContext;
 
 
     public TimeSample TimeSample { get; set; }
-
 
 
     private void ChangeCoach(ChangeEventArgs e)
@@ -173,7 +166,8 @@ else
             JS.InvokeVoidAsync("alert", "Conflict. Time Slots must have a 2 hour gap.");
 
         }
-        snackbar.Show();
+        //ShowToast("New Slot Added.");
+        ToastService.ShowToast("New Slot Added.");
     }
 
 }
