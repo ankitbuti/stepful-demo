@@ -44,7 +44,10 @@ else
         <ol>
             @foreach (TimeSlot tslot in SelectedStudent.Calendar)
             {
-                <li>@tslot.StartTime  with @tslot.PeerUserFullName at @tslot.PeerPhone</li>
+                <li>@tslot.StartTime  with @tslot.PeerUserFullName at @tslot.PeerPhone
+                    <a class="btn btn-primary" @onclick="() => CancelBooking(tslot)">CancelBooking</a>
+
+                    </li>
             }
         </ol>
     }
@@ -106,6 +109,42 @@ else
     //private bool shouldRender;
 
     //protected override bool ShouldRender() => shouldRender;
+
+    private bool CancelBooking(TimeSlot slot)
+    {
+        if(slot == null)
+        {
+            return false;
+        }
+
+        SelectedStudent.Calendar.Remove(slot);
+        StudentService.Update(SelectedStudent.Id, SelectedStudent);
+
+        //SelectedCoach.Calendar.Remove(slot);
+
+        foreach(Coach c in Coaches)
+        {
+            if(string.Equals(c.FullName, slot.PeerUserFullName))
+            {
+                foreach(TimeSlot s in c.Calendar)
+                {
+                    if(s.Id == slot.Id)
+                    {
+                        s.PeerUserFullName = String.Empty;
+                        s.PeerPhone = String.Empty;
+                        break;
+                    }
+                }
+                CoachService.Update(c.Id, c);
+                break;
+            }
+        }
+
+
+        SLog.Write("Booking Cancelled.");
+        return true;
+
+    }
 
     private bool BookSlot(TimeSlot slot)
     {
@@ -207,4 +246,4 @@ else
         //shouldRender = true;
         return data;
     }
-}
+    }

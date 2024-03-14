@@ -219,7 +219,8 @@ public class CoachService : ICoachService
 
         foreach(TimeSlot s in c.Calendar)
         {
-            if(s1.StartTime.Subtract(s.EndTime.ToUniversalTime()).Minutes < 0)
+
+            if(Math.Abs(s.StartTime.ToUniversalTime().Subtract(s1.StartTime).Minutes) < 120)    // Check for overlaps
             {
                 allow = false;
                 break;
