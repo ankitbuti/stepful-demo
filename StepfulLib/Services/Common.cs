@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 namespace StepfulLib;
 
 public interface IBusinessService { }
@@ -11,6 +12,7 @@ public interface IUser {
     public bool IsValid { get; set; }
     public string? PhoneNumber { get; set; }
     public string? ProfilePicUrl { get; set; }
+    public int Ratings { get; set; } //1-5
 }
 
 

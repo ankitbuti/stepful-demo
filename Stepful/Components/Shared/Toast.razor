@@ -37,13 +37,13 @@
        ToastService.OnShow += ShowMessage;
     }
 
-    private void ShowMessage(string message)
+    public void ShowMessage(string message)
     {
         this.Message = message;
         isVisible = true;
         StateHasChanged();
         // Optionally, hide the snackbar after some delay
-        Task.Delay(3000).ContinueWith(_ =>
+        Task.Delay(2000).ContinueWith(_ =>
         {
             isVisible = false;
             StateHasChanged();

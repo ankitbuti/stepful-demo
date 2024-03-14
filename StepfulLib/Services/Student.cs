@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Amazon.SecurityToken.SAML;
+using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
@@ -19,6 +20,7 @@ public class Student : IUser
     public string? PhoneNumber { get; set; }
     public string? ProfilePicUrl { get; set; }
     public List<TimeSlot> Calendar { get; set; }
+    public int Ratings { get; set; }
 
     public Student(string Name)
     {
@@ -222,4 +224,20 @@ public interface IStudentService : IBusinessService
     public Task<bool> Delete(string Id);
     public Task<Student?> Get(string Id);
     public Task<bool> Update(string Id, Student s);
+}
+
+public class TestStudent
+{
+    IStudentService studentService;
+    public TestStudent(IStudentService StudentService)
+    {
+        studentService = StudentService;
+    }
+
+
+    public void TestGet()
+    {
+        // Assert();
+    }
+
 }
