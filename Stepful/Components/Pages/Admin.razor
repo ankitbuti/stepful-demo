@@ -21,13 +21,53 @@
 
 <h3>Coaches <i class="fa-solid fa-circle-plus" @onclick="@CreateCoach"></i></h3>
 
+<Modal @ref="coachBox">
+    <ModalContent Centered>
+        <ModalHeader>
+            <ModalTitle>Create Coach</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            <Field>
+                <FieldLabel>FullName</FieldLabel>
+                <TextEdit Placeholder="Enter name..." @bind-Value="NewCoachEntry.FullName" />
+            </Field>
+            <Field>
+                <FieldLabel>Email</FieldLabel>
+                <TextEdit Placeholder="Enter email..." @bind-Value="NewCoachEntry.Email" />
+            </Field>
+            <Field>
+                <FieldLabel>Phone Number</FieldLabel>
+                <TextEdit Placeholder="Enter phone..." @bind-Value="NewCoachEntry.PhoneNumber" />
+            </Field>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Secondary" Clicked="@(() => HideCoachModal(false))">Close</Button>
+            <Button Color="Color.Primary" Clicked="@(() => HideCoachModal(true))">Save Changes</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
 @if (Coaches != null && Coaches.Count() > 0)
 {
     <QuickGrid Items="@Coaches" OnRowClick="HandleCoachRowClick" style="width:100%;">
-        <PropertyColumn Property="@(p => p.Id)" Sortable="true" />
+        <!-- <PropertyColumn Property="@(p => p.Id)" Sortable="true" /> -->
+        <TemplateColumn Title="Pic">
+            <img src="@context.ProfilePicUrl" style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%;" alt="Profile Picture" /> 
+        </TemplateColumn>
         <PropertyColumn Property="@(p => p.FullName)" Sortable="true" />
         <PropertyColumn Property="@(p => p.Email)" Sortable="true" />
+        <TemplateColumn Sortable="true" Title="Email">
+            <div>
+                <label>
+                    <input type="text" @bind="@context.Email" />
+                </label>
+            </div>
+        </TemplateColumn>
         <PropertyColumn Property="@(p => p.PhoneNumber)" Sortable="true" />
+        <PropertyColumn Property="@(p => p.BookedSlots)" Sortable="true" />
+        <PropertyColumn Property="@(p => p.OpenSlots)" Sortable="true" />
+
         <TemplateColumn Title="Edit">
             <i class="fa fa-pencil" @onclick="@(() => UpdateCoach(context))"></i>
         </TemplateColumn>
@@ -39,15 +79,47 @@
 
 <br />
 
+<Modal @ref="studentBox">
+    <ModalContent Centered>
+        <ModalHeader>
+            <ModalTitle>Create Student</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            <Field>
+                <FieldLabel>FullName - @NewStudentEntry.FullName - b</FieldLabel>
+                <TextEdit Placeholder="Enter name..." @bind-Value="NewStudentEntry.FullName" />
+            </Field>
+            <Field>
+                <FieldLabel>Email</FieldLabel>
+                <TextEdit Placeholder="Enter email..." @bind-Value="NewStudentEntry.Email" />
+            </Field>
+            <Field>
+                <FieldLabel>Phone Number</FieldLabel>
+                <TextEdit Placeholder="Enter phone..." @bind-Value="NewStudentEntry.PhoneNumber" />
+            </Field>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Secondary" Clicked="@(() => HideStudentModal(false))">Close</Button>
+            <Button Color="Color.Primary" Clicked="@(() => HideStudentModal(true))">Save Changes</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
 <h3>Students <i class="fa-solid fa-circle-plus" @onclick="@CreateStudent"></i></h3>
 @if (Students != null && Students.Count() > 0)
 {
 
     <QuickGrid Items="@Students" OnRowClick="HandleStudentRowClick" style="width:100%;">
-        <PropertyColumn Property="@(p => p.Id)" Sortable="true" />
+        <!--<PropertyColumn Property="@(p => p.Id)" Sortable="true" /> -->
+         <TemplateColumn Title="Pic">
+            <img src="@context.ProfilePicUrl" style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%;" alt="Profile Picture" /> 
+        </TemplateColumn>
         <PropertyColumn Property="@(p => p.FullName)" Sortable="true" />
         <PropertyColumn Property="@(p => p.Email)" Sortable="true" />
         <PropertyColumn Property="@(p => p.PhoneNumber)" Sortable="true" />
+        <PropertyColumn Property="@(p => p.BookedSlots)" Sortable="true" />
+        <PropertyColumn Property="@(p => p.IsValid)" />
         <TemplateColumn Title="Edit">
             <i class="fa fa-pencil" @onclick="@(() => UpdateStudent(context))"></i>
         </TemplateColumn>
@@ -60,19 +132,72 @@
 
 
 @code {
+    private Coach NewCoachEntry { get; set; } = new Coach();
+    private Student NewStudentEntry { get; set; } = new Student();
 
     private IQueryable<Student> Students { get; set; }
     private IQueryable<Coach> Coaches { get; set; }
 
+    #region Dialog Box View Logic
+    private Modal coachBox;     // reference to the modal component
+    private Modal studentBox;
+
+    private Task ShowCoachModal()
+    {
+        return coachBox.Show();
+    }
+
+    private Task HideCoachModal(bool save=false)
+    {
+        if (save)
+        {
+            SaveCoach();
+        }
+        return coachBox.Hide();
+    }
+
     private void CreateCoach()
     {
         SLog.Write("Create Coach");
+        ShowCoachModal();
+    }
+
+    private void SaveCoach()
+    {
+        SLog.Write("Save Coach");
+        CoachService.Save(NewCoachEntry);
+        NewCoachEntry = new Coach();
+        // toast todo
+    }
+
+    private Task ShowStudentModal()
+    {
+        return studentBox.Show();
+    }
+
+    private Task HideStudentModal(bool save = false)
+    {
+        if (save)
+        {
+            SaveStudent();
+        }
+        return studentBox.Hide();
     }
 
     private void CreateStudent()
     {
         SLog.Write("Create Student");
+        ShowStudentModal();
     }
+
+    private void SaveStudent()
+    {
+        SLog.Write("Save Student");
+        StudentService.Save(NewStudentEntry);
+        NewStudentEntry = new Student();
+        // toast todo
+    }
+    #endregion 
 
     private void DeleteStudent(Student student)
     {

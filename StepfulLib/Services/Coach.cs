@@ -9,8 +9,8 @@ public class Coach : IUser
     public string? Id { get; set; }
     public string? FullName { get; set; }
     public string? Email { get; set; }
-    public string? Password { get; set; }
-    public bool IsValid { get; set; }
+    public string? EncryptedPassword { get; set; }
+    public bool IsValid { get; set; } = true;
     public string? PhoneNumber { get; set; }
     public string? ProfilePicUrl { get; set; }
     public List<TimeSlot> Calendar { get; set; }
@@ -27,6 +27,33 @@ public class Coach : IUser
     public Coach()
     {
 
+    }
+
+    public Coach(string FullName, string Email, string PhoneNumber)
+    {
+        this.FullName = FullName;
+        this.Email = Email;
+        this.PhoneNumber = PhoneNumber;
+    }
+
+    public int BookedSlots
+    {
+        get
+        {
+            if(Calendar== null)
+                return 0;
+            return Calendar.Where(c => c.PeerUserFullName != String.Empty) .Count();
+        }
+    }
+
+    public int OpenSlots
+    {
+        get
+        {
+            if (Calendar == null)
+                return 0;
+            return Calendar.Where(c => c.PeerUserFullName == String.Empty).Count();
+        }
     }
 }
 
@@ -205,7 +232,7 @@ public class CoachService : ICoachService
         return db.UpdateAsync(Id, c);
     }
 
-    public Task<bool> AddSlot(Coach c, DateTime slot)
+    public Task<bool> AddSlot(Coach c, DateTime slotProposal)
     {
         if (c.Calendar == null)
         {
@@ -214,22 +241,20 @@ public class CoachService : ICoachService
 
         c.Calendar = c.Calendar.OrderBy(c => c.StartTime).ToList();
 
-        TimeSlot s1 = new TimeSlot(slot);
-        bool allow = true;
+        TimeSlot proposedSlot = new TimeSlot(slotProposal.ToUniversalTime());
+        bool overlap = false;
 
-        foreach(TimeSlot s in c.Calendar)
-        {
-
-            if(Math.Abs(s.StartTime.ToUniversalTime().Subtract(s1.StartTime).Minutes) < 120)    // Check for overlaps
-            {
-                allow = false;
-                break;
-            }
+        foreach(TimeSlot existing in c.Calendar)
+        {                                                                                                                                 
+           if(proposedSlot.StartTime > existing.StartTime && proposedSlot.StartTime < existing.EndTime)
+           {
+                overlap = true; break;
+           }
         }
 
-        if(allow)
+        if(!overlap)
         {
-            c.Calendar.Add(s1);
+            c.Calendar.Add(proposedSlot);
             return Update(c.Id, c);
         }
 

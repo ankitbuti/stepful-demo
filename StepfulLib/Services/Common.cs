@@ -7,7 +7,7 @@ public interface IUser {
     public string? Id { get; set; }
     public string? FullName { get; set; }
     public string? Email { get; set; }
-    public string? Password { get; set; }
+    public string? EncryptedPassword { get; set; }
     public bool IsValid { get; set; }
     public string? PhoneNumber { get; set; }
     public string? ProfilePicUrl { get; set; }

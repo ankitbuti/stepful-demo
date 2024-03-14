@@ -43,39 +43,65 @@
 
 <p>
     <button class="btn btn-primary" @onclick="Flush">Flush DB</button>
-    <button class="btn btn-primary" @onclick="Bootstrap">Bootstrap DB</button>
+    <button class="btn btn-primary" @onclick="BootstrapFromService">Bootstrap DB</button>
 </p>
 
 @code {
     protected override async Task OnInitializedAsync()
+    {
+    }
+
+    private async Task<bool> Flush()
+    {
+        try
         {
+            StudentService.DeleteAll();
+            CoachService.DeleteAll();
+            await JS.InvokeVoidAsync("alert", "All Data is Flushed. Database is Empty.");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            SLog.Write(ex.Message);
+            return false;
+        }
+    }
+
+    public async Task<bool> BootstrapFromService()
+    {
+        string result = Agent.Echo("Bootstraping Via Service...");
+        SLog.Write(result);
+
+        try
+        {
+            List<Student> Students = Bootstrap.GenerateStudents();
+            foreach (Student s in Students)
+            {
+                StudentService.Save(s);
+            }
+            SLog.Write("Student Data Loaded.");
+
+            List<Coach> Coaches = Bootstrap.GenerateCoaches();
+            foreach(Coach c in Coaches)
+            {
+                CoachService.Save(c);
+            }
+            SLog.Write("Coach Data Loaded.");
+            return true;
+        }
+        catch(Exception ex)
+        {
+            SLog.Write("BOOTSTRAP Failed." + ex.Message);
+            return false;
         }
 
-        private async Task<bool> Flush()
-        {
-            try
-            {
-                StudentService.DeleteAll();
-                CoachService.DeleteAll();
-                await JS.InvokeVoidAsync("alert", "All Data is Flushed. Database is Empty.");
-                return true;
-            }
-            catch (Exception ex)
-            {
-                SLog.Write(ex.Message);
-                return false;
-            }
-        }
 
-        public async Task<bool> Bootstrap()
+    }
+
+        public async Task<bool> BootstrapFromJson()                 // CORS / Forgery Issue on Cloud, Good For External Loads
         {
-            string result = Agent.Echo("Bootstraping...");
+            string result = Agent.Echo("Bootstraping Via JSON...");
             SLog.Write(result);
-
-            //var y = Agent.Create("You are a helpful scheduling agent for students and coaches. You speak can read write in all languages.");
-            //var x = Agent.AIKernel.InvokeAsync(y).Result.ToString();
-            //int random = Utility.GenerateRandomNumber(1, 10);
-
             try
             {
                 List<Coach> coaches = await Http.GetFromJsonAsync<List<Coach>>("datasets/coaches.json");
@@ -83,7 +109,7 @@
 
                 foreach (Student s in students)
                 {
-                    //StudentService.Create(s.Email);
+                    //StudentService.Create(s.Email);       // Direct API
                     StudentService.Save(s);
                 }
 

@@ -12,20 +12,24 @@ using Blazorise;
 using Blazorise.Bootstrap;
 using Blazorise.Icons.FontAwesome;
 
-
 namespace Stepful;
 
 public class Program {
     public static void Main(string[] args) {
 
+        string StepfulAI_KEY = Environment.GetEnvironmentVariable("StepfulAI_KEY");
+        string Stepful_DB = Environment.GetEnvironmentVariable("Stepful_DB");
+     
         var builder = WebApplication.CreateBuilder(args);
 
         var dbConfig = builder.Configuration.GetSection("DatabaseSettings");
         DatabaseSettings dbSettings = new DatabaseSettings();
+        dbSettings.ConnectionString = Stepful_DB;
         dbConfig.Bind(dbSettings);
 
         var aiConfig = builder.Configuration.GetSection("AiSettings");
         AiSettings aiSettings = new AiSettings();
+        aiSettings.Key = StepfulAI_KEY;
         aiConfig.Bind(aiSettings);
 
         builder.Services.AddSingleton<IAgent, Agent>(provider => {

@@ -95,7 +95,8 @@ else
     </div>
 }
 
-@* <Button class="btn btn-primary" Clicked="@(()=>snackbar.Show())">Say Hello!</Button> *@
+<br />
+ <Button class="btn btn-primary" Clicked="@(()=>snackbar.Show())">Say Hello!</Button> 
 
 <Snackbar @ref="snackbar">
     <SnackbarBody>
@@ -165,13 +166,14 @@ else
     {
         TimeSample.Date = TimeSample.Date.Date + TimeSample.Time.TimeOfDay;
         TimeSample.Time = TimeSample.Date;
-        DateTime slot = TimeSample.Date;            // New var, to not affect UI Data Binding
-        slot = slot.ToUniversalTime();
-        var result = CoachService.AddSlot(SelectedCoach, slot);
+        DateTime proposedSlot = TimeSample.Date;            // New var, to not affect UI Data Binding
+        var result = CoachService.AddSlot(SelectedCoach, proposedSlot);
         if (result == null)
         {
             JS.InvokeVoidAsync("alert", "Conflict. Time Slots must have a 2 hour gap.");
+
         }
+        snackbar.Show();
     }
 
 }

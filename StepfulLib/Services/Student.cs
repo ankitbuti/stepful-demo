@@ -14,8 +14,8 @@ public class Student : IUser
 
     public string? FullName { get; set; }
     public string? Email { get; set; }
-    public string? Password { get; set; }
-    public bool IsValid { get; set; }
+    public string? EncryptedPassword { get; set; }
+    public bool IsValid { get; set; } = true;
     public string? PhoneNumber { get; set; }
     public string? ProfilePicUrl { get; set; }
     public List<TimeSlot> Calendar { get; set; }
@@ -29,6 +29,23 @@ public class Student : IUser
     {
 
     }
+
+    public Student(string FullName, string Email, string PhoneNumber)
+    {
+        this.FullName = FullName;
+        this.Email = Email;
+        this.PhoneNumber = PhoneNumber;
+    }
+    public int BookedSlots
+    {
+        get
+        {
+            if (Calendar == null)
+                return 0;
+            return Calendar.Where(c => c.PeerUserFullName != String.Empty).Count();
+        }
+    }
+
 }
 
 public class StudentContext

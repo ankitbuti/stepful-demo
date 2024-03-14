@@ -1,0 +1,78 @@
+﻿@page "/ai"
+
+@rendermode InteractiveServer
+@inject IJSRuntime JS
+
+@using StepfulLib   
+@inject IStudentService StudentService
+@inject ICoachService CoachService
+@inject IAgent Agent
+
+@inject HttpClient Http
+
+@using System.Net.Http
+@using System.Net.Http.Json
+
+@using Microsoft.SemanticKernel
+
+<PageTitle>Stepful AI</PageTitle>
+
+<div style="text-center" align="center">
+    <h1><img src="imgs/logo.png" alt="Logo" /> AI</h1>
+</div>
+
+<hr />
+
+<div class="container">
+<div class="row">
+    <div class="col">
+        <textarea class="form-control rounded-0" id="chatAreaThread" rows="10" @bind="Thread" @bind:event="oninput" readonly></textarea>
+    </div>
+</div>
+<br / >
+ <div class="row">
+        <div class="col-md-8">
+            <textarea class="form-control rounded-0" id="chatAreaInput" rows="1" @bind="Input" @bind:event="oninput" placeholder="Try: Help me book a class. Or: Create a slot." style="width:80%"></textarea>
+        </div>
+        <div class="col=md-2" style="text-align: right;">
+            <button class="btn btn-primary" @onclick="Talk">Talk</button>
+        </div>
+</div>
+</div>
+
+
+@code {
+    private string Thread { get; set; } = String.Empty;
+    private string Input { get; set; } = String.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+
+
+    private async Task<string> Talk()
+    {
+        try
+        {
+            var chat = Agent.Create("You are a smart scheduling AI Agent that helps coaches and students to boot meetings using Stepful web platform. Please help the user with: " +Input);
+            var result = await Agent.AIKernel.InvokeAsync(chat);
+            
+            Thread += Environment.NewLine + Environment.NewLine + "User: " + Input + Environment.NewLine + Environment.NewLine + "SAI: " + result.ToString();
+
+
+
+            return result.ToString();
+
+            // TBD Get Funky Later
+            int random = Utility.GenerateRandomNumber(1, 10);
+
+
+        }
+        catch (Exception ex)
+        {
+            SLog.Write(ex.Message);
+            return null;
+        }
+        }    
+    }
