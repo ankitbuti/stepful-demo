@@ -1,5 +1,6 @@
 ﻿@page "/coach"
 @using StepfulLib
+@using Blazorise
 @attribute [StreamRendering]
 @rendermode InteractiveServer
 @inject IJSRuntime JS
@@ -30,35 +31,62 @@
 }
 else
 {
-    <h4>@SelectedCoach.FullName Slots:</h4>
+    <h3>@SelectedCoach.FullName Calendar</h3>
 
     @if (SelectedCoach.Calendar != null)
     {
-        <p><b>Open Slots:</b></p>
-        <ol>
+        <br />
+        <h5>Open Slots</h5>
+        
+        <Table style="margin-left:100px; border:1px solid; width:50%">
+             <TableRow>
+                 <TableHeaderCell>Detail</TableHeaderCell>
+                 <TableHeaderCell>Action</TableHeaderCell>
+            </TableRow>
+            
+     
+
             @foreach (TimeSlot tslot in SelectedCoach.Calendar)
             {
+                
                 if (tslot.IsOpen)
                 {
-                    <li>@tslot.StartTime.ToLocalTime() - <span class="btn-primary" Clicked="@(()=>DeleteSlot(tslot))">Delete</span></li>
+                     <TableRow>
+                        <TableRowCell>@tslot.StartTime.ToLocalTime() </TableRowCell>
+                        <TableRowCell><a href="coach" @onclick="() => DeleteSlot(tslot)">Delete</a></TableRowCell>
+                      </TableRow>
                 }
+
             }
-        </ol>
+        </Table>
 
         <br />
+        <br />
 
-        <p><b>Booked Slots:</b></p>
-        <ol>
+        <h5>Booked Slots</h5>
+        
+          <Table style="margin-left:100px; border:1px solid; width:50%">
+             <TableRow>
+                 <TableHeaderCell>Detail</TableHeaderCell>
+                <TableHeaderCell>With</TableHeaderCell>
+                <TableHeaderCell>Phone</TableHeaderCell>
+                 <TableHeaderCell>Action</TableHeaderCell>
+            </TableRow>
+            
+
             @foreach (TimeSlot tslot in SelectedCoach.Calendar)
             {
                 if (!tslot.IsOpen)
                 {
-                    <li>
-                        @tslot.StartTime.ToLocalTime() with @tslot.PeerUserFullName at @tslot.PeerPhone -  <span class="btn-primary" Clicked="@(()=>CancelBooking(tslot))">Cancel Booking</span>
-                        </li>
+                     <TableRow>
+                        <TableRowCell>@tslot.StartTime.ToLocalTime()</TableRowCell>
+                        <TableRowCell>@tslot.PeerUserFullName</TableRowCell>
+                        <TableRowCell>@tslot.PeerPhone</TableRowCell>
+                        <TableRowCell><a href="coach" @onclick="() => CancelBooking(tslot)">Cancel Booking</a></TableRowCell>
+                       </TableRow>
                 }
             }
-        </ol>
+        </Table>
     }
     else
     {
@@ -68,9 +96,11 @@ else
 
 }
 
+<br />
+<h4>New Slots</h4>
 @if (SelectedCoach != null)
 {
-    <div class="card">
+    <div class="card" style="width:250%">
         <div class="card-body" >
             <h5 class="card-title">Pick a Date &amp; Time</h5>
             <p class="card-text">
@@ -91,7 +121,7 @@ else
                         </EditForm>
                     </section>
                 </div>
-                <a class="btn btn-primary" @onclick="CreateSlot">Add Slot</a>
+                <btn class="btn btn-primary" @onclick="CreateSlot">Add Slot</btn>
             </p>
         </div>
     </div>
@@ -176,7 +206,7 @@ else
         ToastService.ShowToast("New Slot Added.");
     }
 
-    private bool DeleteSlot(TimeSlot tslot)
+    private async Task<bool> DeleteSlot(TimeSlot tslot)
     {
         if (tslot == null)
             return false;
@@ -186,7 +216,7 @@ else
 
         try{
             SelectedCoach.Calendar.Remove(tslot);
-            CoachService.Update(SelectedCoach.Id, SelectedCoach);
+            await CoachService.Update(SelectedCoach.Id, SelectedCoach);
             return true;
         }
         catch(Exception e)
@@ -197,7 +227,7 @@ else
 
     }
 
-    private bool CancelBooking(TimeSlot tslot)
+    private async Task<bool> CancelBooking(TimeSlot tslot)
     {
         if (tslot == null)
             return false;
@@ -219,8 +249,7 @@ else
                     {
                         if (ts.Id == tslot.Id)
                         {
-                            ts.PeerUserFullName = String.Empty;
-                            ts.PeerPhone = String.Empty;
+                            s.Calendar.Remove(ts);
                             break;
                         }
                     }

@@ -254,9 +254,11 @@
 
     private void DeleteStudent(Student student)
     {
-        //Students.Remove(student);
+
         SLog.Write("Delete Student: " + student.FullName);
-        // Optionally, trigger any necessary StateHasChanged() or data refresh operations
+        StudentService.Delete(student.Id);
+        StateHasChanged();
+
     }
 
     private void UpdateStudent(Student student)
@@ -267,6 +269,8 @@
     private void DeleteCoach(Coach coach)
     {
         SLog.Write("Delete Coach: " + coach.FullName);
+        CoachService.Delete(coach.Id);
+        StateHasChanged();
     }
 
     private void UpdateCoach(Coach coach)

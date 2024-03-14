@@ -37,19 +37,30 @@
 }
 else
 {
-    <h4>@SelectedStudent.FullName 's  Booked Slots:</h4>
+    <h4>@SelectedStudent.FullName's  Booked Slots:</h4>
 
     @if (SelectedStudent.Calendar != null)
     {
-        <ol>
+         <Table style="margin-left:100px; border:1px solid; width:50%">
+             <TableRow>
+                 <TableHeaderCell>Detail</TableHeaderCell>
+                <TableHeaderCell>With</TableHeaderCell>
+                <TableHeaderCell>Phone</TableHeaderCell>
+                <TableHeaderCell>Action</TableHeaderCell>
+                 
+            </TableRow>
+            
             @foreach (TimeSlot tslot in SelectedStudent.Calendar)
             {
-                <li>@tslot.StartTime  with @tslot.PeerUserFullName at @tslot.PeerPhone
-                    <a class="btn btn-primary" @onclick="() => CancelBooking(tslot)">CancelBooking</a>
+                <TableRow>
+                    <TableRowCell>@tslot.StartTime</TableRowCell>
+                    <TableRowCell>@tslot.PeerUserFullName</TableRowCell>
+                    <TableRowCell>@tslot.PeerPhone</TableRowCell>
+                    <TableRowCell> <a href="student" @onclick="() => CancelBooking(tslot)">Cancel Booking</a></TableRowCell>
+                </TableRow>
 
-                    </li>
-            }
-        </ol>
+             }
+        </Table>
     }
     else
     {
@@ -73,15 +84,21 @@ else
 
                     @if (SelectedCoach.Calendar != null)
                     {
-                        <ol>
+                          <Table style="margin-left:100px; border:1px solid; width:50%">
+                            <TableHeaderCell>Detail</TableHeaderCell>
+                            <TableHeaderCell>Action</TableHeaderCell>
                             @foreach (TimeSlot tslot in SelectedCoach.Calendar)
                                 {
                                     if (tslot.IsOpen)
                                     {
-                                        <li>@tslot.StartTime.ToLocalTime()  <a class="btn btn-primary" @onclick="() => BookSlot(tslot)">Book</a></li>
+                                         <TableRow>
+                                        <TableRowCell>@tslot.StartTime.ToLocalTime()</TableRowCell>
+                                        <TableRowCell><a href="student" @onclick="() => BookSlot(tslot)">Book</a></TableRowCell>
+                                    </TableRow>
+                                        
                                     }
                                 }
-                        </ol>
+                        </Table>
                     }
                     else
                     {
