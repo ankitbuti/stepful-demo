@@ -1,0 +1,137 @@
+﻿@page "/"
+
+@rendermode InteractiveServer
+@inject IJSRuntime JS
+
+@using StepfulLib   
+@inject IStudentService StudentService
+@inject ICoachService CoachService
+@inject IAgent Agent
+
+@inject HttpClient Http
+
+@using System.Net.Http
+@using System.Net.Http.Json
+
+@using Microsoft.SemanticKernel
+
+<PageTitle>Home</PageTitle>
+
+<div style="text-center" align="center">
+    <h1><img src="imgs/logo.png" alt="Logo" /> Coaching Scheduler</h1>
+</div>
+
+<h2>Welcome! </h2>
+
+<hr />
+<br />
+
+<p><b>Author: </b>Ankit Buti (ankitbuti@gmail.com)</p>
+<p><b>Role: </b> Growth Engineering</p>
+<p><b>Date Published:</b> March 13, 2024</p>
+<p><b>Version:</b> v1.0</p>
+
+<hr />
+<br />
+
+<h3>Notes</h3>
+<p>
+    * Use the Left Menu to Get Started. <br />
+    * As per instructions <a href="https://stepful.notion.site/Stepful-engineering-interview-25c570455e1d471494cf2cb893e2eb7a">here</a>. No authentication or user-creation is built. <br />
+    * Use the below 2 ACTIONS to Try The App!
+</p>
+
+<p>
+    <button class="btn btn-primary" @onclick="Flush">Flush DB</button>
+    <button class="btn btn-primary" @onclick="BootstrapFromService">Bootstrap DB</button>
+</p>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+    }
+
+    private async Task<bool> Flush()
+    {
+        try
+        {
+            StudentService.DeleteAll();
+            CoachService.DeleteAll();
+            await JS.InvokeVoidAsync("alert", "All Data is Flushed. Database is Empty.");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            SLog.Write(ex.Message);
+            return false;
+        }
+    }
+
+    public async Task<bool> BootstrapFromService()
+    {
+        string result = Agent.Echo("Bootstraping Via Service...");
+        SLog.Write(result);
+
+        try
+        {
+            List<Student> Students = Bootstrap.GenerateStudents();
+            foreach (Student s in Students)
+            {
+                StudentService.Save(s);
+            }
+            SLog.Write("Student Data Loaded.");
+
+            List<Coach> Coaches = Bootstrap.GenerateCoaches();
+            foreach(Coach c in Coaches)
+            {
+                CoachService.Save(c);
+            }
+            SLog.Write("Coach Data Loaded.");
+            return true;
+        }
+        catch(Exception ex)
+        {
+            SLog.Write("BOOTSTRAP Failed." + ex.Message);
+            return false;
+        }
+
+
+    }
+
+        public async Task<bool> BootstrapFromJson()                 // CORS / Forgery Issue on Cloud, Good For External Loads
+        {
+            string result = Agent.Echo("Bootstraping Via JSON...");
+            SLog.Write(result);
+            try
+            {
+                List<Coach> coaches = await Http.GetFromJsonAsync<List<Coach>>("datasets/coaches.json");
+                List<Student> students = await Http.GetFromJsonAsync<List<Student>>("datasets/students.json");
+
+                foreach (Student s in students)
+                {
+                    //StudentService.Create(s.Email);       // Direct API
+                    StudentService.Save(s);
+                }
+
+                SLog.Write("Student Data Loaded.");
+
+                foreach (Coach c in coaches)
+                {
+                    CoachService.Save(c);
+                }
+
+                SLog.Write("Coach Data Loaded.");
+
+                await JS.InvokeVoidAsync("alert", "Database has been loaded with Test Users.");
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                SLog.Write("Bootstrap Failed....");
+                SLog.Write(ex.Message);
+                return false;
+            }
+
+        }
+    }

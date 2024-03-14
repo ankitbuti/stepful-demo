@@ -1,0 +1,267 @@
+﻿@page "/student"
+
+@rendermode InteractiveServer
+@inject IJSRuntime JS
+
+@using System.Net.Http
+@inject HttpClient Http
+@using System.Text.Json
+@inject IHttpClientFactory ClientFactory
+
+@inject IStudentService StudentService
+@inject ICoachService CoachService
+@inject IAgent Agent
+
+@using StepfulLib;
+
+<PageTitle>Student</PageTitle>
+<h1>Student View</h1>
+
+<div>
+    @if (SelectedStudent != null)
+    {
+
+        <select @onchange="ChangeStudent">
+            @foreach (var item in Students)
+            {
+                <option value="@item.FullName">@item.FullName</option>
+            }
+        </select>
+    }
+</div>
+<hr />
+
+@if (SelectedStudent == null)
+{
+    <h3>No Student Selected.</h3>
+}
+else
+{
+    <h4>@SelectedStudent.FullName's  Booked Slots:</h4>
+
+    @if (SelectedStudent.Calendar != null)
+    {
+         <Table style="margin-left:100px; border:1px solid; width:50%">
+             <TableRow>
+                 <TableHeaderCell>Detail</TableHeaderCell>
+                <TableHeaderCell>With</TableHeaderCell>
+                <TableHeaderCell>Phone</TableHeaderCell>
+                <TableHeaderCell>Action</TableHeaderCell>
+                 
+            </TableRow>
+            
+            @foreach (TimeSlot tslot in SelectedStudent.Calendar)
+            {
+                <TableRow>
+                    <TableRowCell>@tslot.StartTime</TableRowCell>
+                    <TableRowCell>@tslot.PeerUserFullName</TableRowCell>
+                    <TableRowCell>@tslot.PeerPhone</TableRowCell>
+                    <TableRowCell> <a href="student" @onclick="() => CancelBooking(tslot)">Cancel Booking</a></TableRowCell>
+                </TableRow>
+
+             }
+        </Table>
+    }
+    else
+    {
+        <p>No Booked Slots in System.</p>
+    }
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Select Coach to Find Available and Book Slots:</h5>
+            <p class="card-text">
+                @if (SelectedCoach != null)
+                {
+
+                    <select @onchange="ChangeCoach">
+                        @foreach (var item in Coaches)
+                        {
+                            <option value="@item.FullName">@item.FullName</option>
+                        }
+                    </select>
+
+
+                    @if (SelectedCoach.Calendar != null)
+                    {
+                          <Table style="margin-left:100px; border:1px solid; width:50%">
+                            <TableHeaderCell>Detail</TableHeaderCell>
+                            <TableHeaderCell>Action</TableHeaderCell>
+                            @foreach (TimeSlot tslot in SelectedCoach.Calendar)
+                                {
+                                    if (tslot.IsOpen)
+                                    {
+                                         <TableRow>
+                                        <TableRowCell>@tslot.StartTime.ToLocalTime()</TableRowCell>
+                                        <TableRowCell><a href="student" @onclick="() => BookSlot(tslot)">Book</a></TableRowCell>
+                                    </TableRow>
+                                        
+                                    }
+                                }
+                        </Table>
+                    }
+                    else
+                    {
+                        <p>No Available Slots for: @SelectedCoach.FullName</p>
+                    }
+                }
+
+               
+                </p>
+            </div>
+    </div>
+
+}
+
+
+@code {
+
+    private Student SelectedStudent { get; set; }
+    private List<Student> Students { get; set; }
+    private Coach SelectedCoach { get; set; }
+    private List<Coach> Coaches { get; set; }
+
+    private IEnumerable<Student>? data = null;
+    private bool getDataError;
+    //private bool shouldRender;
+
+    //protected override bool ShouldRender() => shouldRender;
+
+    private bool CancelBooking(TimeSlot slot)
+    {
+        if(slot == null)
+        {
+            return false;
+        }
+
+        SelectedStudent.Calendar.Remove(slot);
+        StudentService.Update(SelectedStudent.Id, SelectedStudent);
+
+        //SelectedCoach.Calendar.Remove(slot);
+
+        foreach(Coach c in Coaches)
+        {
+            if(string.Equals(c.FullName, slot.PeerUserFullName))
+            {
+                foreach(TimeSlot s in c.Calendar)
+                {
+                    if(s.Id == slot.Id)
+                    {
+                        s.PeerUserFullName = String.Empty;
+                        s.PeerPhone = String.Empty;
+                        break;
+                    }
+                }
+                CoachService.Update(c.Id, c);
+                break;
+            }
+        }
+
+
+        SLog.Write("Booking Cancelled.");
+        return true;
+
+    }
+
+    private bool BookSlot(TimeSlot slot)
+    {
+        if (slot == null)
+            return false;
+
+        slot.PeerUserFullName = SelectedStudent.FullName;
+        slot.PeerPhone = SelectedStudent.PhoneNumber;
+        CoachService.Update(SelectedCoach.Id, SelectedCoach);
+
+        if (SelectedStudent.Calendar == null)
+        {
+            SelectedStudent.Calendar = new List<TimeSlot>();
+        }
+
+        slot.PeerUserFullName = SelectedCoach.FullName;
+        slot.PeerPhone = SelectedCoach.PhoneNumber;
+        SelectedStudent.Calendar.Add(slot);
+
+        StudentService.Update(SelectedStudent.Id, SelectedStudent);
+
+        JS.InvokeVoidAsync("alert", "Booking Success.");
+        //ShowToast("Booking Success.");
+        return true;
+    }
+
+    private void ChangeStudent(ChangeEventArgs e)
+    {
+        var selectedString = e.Value.ToString();
+        foreach (Student s in Students)
+        {
+            if (string.Equals(s.FullName, selectedString))
+            {
+                SelectedStudent = s;
+                break;
+            }
+        }
+    }
+
+    private void ChangeCoach(ChangeEventArgs e)
+    {
+        var selectedString = e.Value.ToString();
+        foreach (Coach c in Coaches)
+        {
+            if (string.Equals(c.FullName, selectedString))
+            {
+                SelectedCoach = c;
+                break;
+            }
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var x = await CoachService.GetAllAsync();
+        Coaches = x.OrderBy(x => x.FullName).ToList();
+        if (Coaches != null && Coaches.Count > 0)
+        {
+            SelectedCoach = Coaches[0];
+        }
+
+        var y = await StudentService.GetAllAsync();
+        Students = y.OrderBy(y => y.FullName).ToList();
+        if (Students != null && Students.Count > 0)
+        {
+            SelectedStudent = Students[0];
+        }
+    }
+
+
+    private void GetAllStudents()
+    {
+        //JS.InvokeVoidAsync("alert", "Getting All Data...");
+        //var x = GetAllData().Result;
+
+        //Client_Student client_Student = new Client_Student(Http);
+        //var y = client_Student.GetAllAsync().Result;
+
+        //StudentController studentController = new StudentController(StudentService);
+        // var z = studentController.GetAll();
+
+        //JS.InvokeVoidAsync("alert", x.ToString());
+    }
+    protected async Task<IEnumerable<Student>> GetAllDataViaApi()       // Sample, Not In Use
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:4297/api/v1/student");
+
+        var response = await Http.SendAsync(request);
+
+        if (response.IsSuccessStatusCode)
+        {
+            using var responseStream = await response.Content.ReadAsStreamAsync();
+            data = await JsonSerializer.DeserializeAsync<IEnumerable<Student>>(responseStream);
+        }
+        else
+        {
+            data = null;
+        }
+
+        //shouldRender = true;
+        return data;
+    }
+    }

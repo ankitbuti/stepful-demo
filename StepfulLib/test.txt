@@ -1,0 +1,83 @@
+﻿ public bool AddSlot(DateTime start)
+    {
+        if(coach.Calendar == null || coach.Calendar.Count == 0)
+        {
+            CreateSlot(start);
+        }
+
+       for(int i=0; i < coach.Calendar.Count; i++) { 
+             TimeSlot slot = coach.Calendar[i];
+            if(slot.StartTime < start)
+            {
+                continue;
+            }
+            else
+            {
+                TimeSlot s = coach.Calendar[i + 1];
+                
+                if (s!=null && coach.Calendar[i + 1].StartTime.Subtract(slot.StartTime).Minutes > 120)
+                {
+                    CreateSlot(start);
+                };
+            }
+       }
+
+        return false;
+    }
+
+    private void CreateSlot(DateTime start)
+    {
+        TimeSlot NextSlot = new TimeSlot();
+       
+        coach.Calendar.Add(NextSlot);
+    }
+
+    public bool RemoveSlot(DateTime start) {
+        return false;
+    }
+
+    public List<TimeSlot> GetMySlots()
+    {
+        if (coach != null && coach.Calendar != null)
+        {
+            return coach.Calendar.OrderBy(x => x.StartTime).ToList();
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    public List<TimeSlot> GetAllSlots()
+    {
+       List<TimeSlot > slots = new List<TimeSlot>();
+
+        foreach(Coach c in AllCoaches)
+        {
+            slots.AddRange(c.Calendar);
+        }
+        return slots;
+    }
+
+
+<PageTitle>Student</PageTitle>
+<h1>Student View</h1>
+<hr />
+
+<InputText @bind-Value="student.Email" placeholder="Enter student email" />
+<button class="btn btn-primary" @onclick="CreateStudent">Create Student</button>
+
+<p>Pick a Student: </p>
+<select @bind="selectedStudent">
+    @foreach (var item in items)
+    {
+        <option value="@item">@item</option>
+    }
+</select>
+
+<p role="status">Name: @student.FullName</p>
+
+<button class="btn btn-primary" @onclick="GetAllStudents">Get Students</button>
+
+
+<br />

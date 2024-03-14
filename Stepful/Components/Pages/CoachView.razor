@@ -1,0 +1,269 @@
+﻿@page "/coach"
+@using StepfulLib
+@using Blazorise
+@attribute [StreamRendering]
+@rendermode InteractiveServer
+@inject IJSRuntime JS
+@inject ICoachService CoachService
+@inject IStudentService StudentService
+@inject ToastService ToastService
+
+<PageTitle>Coach</PageTitle>
+<h1>Coach View</h1>
+
+<div>
+    @if (SelectedCoach != null)
+    {
+
+        <select @onchange="ChangeCoach">
+            @foreach (var item in Coaches)
+            {
+                <option value="@item.FullName">@item.FullName</option>
+            }
+        </select>
+    }
+</div>
+<hr />
+
+@if (SelectedCoach == null)
+{
+    <h3>No Coach Selected.</h3>
+}
+else
+{
+    <h3>@SelectedCoach.FullName Calendar</h3>
+
+    @if (SelectedCoach.Calendar != null)
+    {
+        <br />
+        <h5>Open Slots</h5>
+        
+        <Table style="margin-left:100px; border:1px solid; width:50%">
+             <TableRow>
+                 <TableHeaderCell>Detail</TableHeaderCell>
+                 <TableHeaderCell>Action</TableHeaderCell>
+            </TableRow>
+            
+     
+
+            @foreach (TimeSlot tslot in SelectedCoach.Calendar)
+            {
+                
+                if (tslot.IsOpen)
+                {
+                     <TableRow>
+                        <TableRowCell>@tslot.StartTime.ToLocalTime() </TableRowCell>
+                        <TableRowCell><a href="coach" @onclick="() => DeleteSlot(tslot)">Delete</a></TableRowCell>
+                      </TableRow>
+                }
+
+            }
+        </Table>
+
+        <br />
+        <br />
+
+        <h5>Booked Slots</h5>
+        
+          <Table style="margin-left:100px; border:1px solid; width:50%">
+             <TableRow>
+                 <TableHeaderCell>Detail</TableHeaderCell>
+                <TableHeaderCell>With</TableHeaderCell>
+                <TableHeaderCell>Phone</TableHeaderCell>
+                 <TableHeaderCell>Action</TableHeaderCell>
+            </TableRow>
+            
+
+            @foreach (TimeSlot tslot in SelectedCoach.Calendar)
+            {
+                if (!tslot.IsOpen)
+                {
+                     <TableRow>
+                        <TableRowCell>@tslot.StartTime.ToLocalTime()</TableRowCell>
+                        <TableRowCell>@tslot.PeerUserFullName</TableRowCell>
+                        <TableRowCell>@tslot.PeerPhone</TableRowCell>
+                        <TableRowCell><a href="coach" @onclick="() => CancelBooking(tslot)">Cancel Booking</a></TableRowCell>
+                       </TableRow>
+                }
+            }
+        </Table>
+    }
+    else
+    {
+        <p>No Slots in System.</p>
+    }
+
+
+}
+
+<br />
+<h4>New Slots</h4>
+@if (SelectedCoach != null)
+{
+    <div class="card" style="width:250%">
+        <div class="card-body" >
+            <h5 class="card-title">Pick a Date &amp; Time</h5>
+            <p class="card-text">
+
+                <div class="wrapper">
+                    <section class="createevent">
+                        <EditForm EditContext="@EditContext" OnValidSubmit="@HandleValidSubmit" OnInvalidSubmit="@HandleInvalidSubmit">
+                            <DataAnnotationsValidator />
+                            <div class="form-group">
+                                <p>
+                                    <input id="txtDate" type="date" required @bind-value="TimeSample.Date" />
+                                    <ValidationMessage For="@(() => TimeSample.Date)" />
+
+                                    <input id="txtTime" type="time" required @bind="TimeSample.Time" />
+                                    <ValidationMessage For="@(() => TimeSample.Time)" />
+                                </p>
+                            </div>
+                        </EditForm>
+                    </section>
+                </div>
+                <btn class="btn btn-primary" @onclick="CreateSlot">Add Slot</btn>
+            </p>
+        </div>
+    </div>
+}
+
+<br />
+ 
+@* <Button class="btn btn-primary" Clicked="@(()=>ShowToast("Ankit"))">Say Hello!</Button> *@
+
+
+
+@code {
+    private Coach SelectedCoach { get; set; }
+    private List<Coach> Coaches { get; set; }
+    private List<Student> Students { get; set; }
+
+
+
+    private EditContext EditContext;
+
+
+    public TimeSample TimeSample { get; set; }
+
+
+    private void ChangeCoach(ChangeEventArgs e)
+    {
+        var selectedString = e.Value.ToString();
+        foreach (Coach c in Coaches)
+        {
+            if (string.Equals(c.FullName, selectedString))
+            {
+                SelectedCoach = c;
+                break;
+            }
+        }
+    }
+
+    private void HandleValidSubmit()
+    {
+    }
+
+    protected void HandleInvalidSubmit()
+    {
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        TimeSample = new TimeSample()
+        {
+            Date = DateTime.Today,
+            Time = DateTime.Now
+        };
+        TimeSample.Time = TimeSample.Time.AddSeconds(-TimeSample.Time.Second);       // Set to 0 seconds
+
+
+        EditContext = new EditContext(TimeSample);
+
+        var x = await CoachService.GetAllAsync();
+        Coaches = x.OrderBy(x => x.FullName).ToList();
+        if (Coaches != null && Coaches.Count > 0)
+        {
+            SelectedCoach = Coaches[0];
+        }
+
+        var y = await StudentService.GetAllAsync();
+        Students = y.ToList();
+    }
+
+    // TBD Verify Algo
+    private void CreateSlot()
+    {
+        TimeSample.Date = TimeSample.Date.Date + TimeSample.Time.TimeOfDay;
+        TimeSample.Time = TimeSample.Date;
+        DateTime proposedSlot = TimeSample.Date;            // New var, to not affect UI Data Binding
+        var result = CoachService.AddSlot(SelectedCoach, proposedSlot);
+        if (result == null)
+        {
+            JS.InvokeVoidAsync("alert", "Conflict. Time Slots must have a 2 hour gap.");
+
+        }
+        //ShowToast("New Slot Added.");
+        ToastService.ShowToast("New Slot Added.");
+    }
+
+    private async Task<bool> DeleteSlot(TimeSlot tslot)
+    {
+        if (tslot == null)
+            return false;
+
+        if (!string.IsNullOrEmpty(tslot.PeerUserFullName))
+            return false;
+
+        try{
+            SelectedCoach.Calendar.Remove(tslot);
+            await CoachService.Update(SelectedCoach.Id, SelectedCoach);
+            return true;
+        }
+        catch(Exception e)
+        {
+            SLog.Write("Slot Deletion Failed." + e.Message);
+            return false;
+        }
+
+    }
+
+    private async Task<bool> CancelBooking(TimeSlot tslot)
+    {
+        if (tslot == null)
+            return false;
+
+        if (string.IsNullOrEmpty(tslot.PeerUserFullName))
+            return false;
+
+        try
+        {
+            SelectedCoach.Calendar.Remove(tslot);
+            CoachService.Update(SelectedCoach.Id, SelectedCoach);
+
+
+            foreach (Student s in Students)
+            {
+                if (string.Equals(s.FullName, tslot.PeerUserFullName))
+                {
+                    foreach (TimeSlot ts in s.Calendar)
+                    {
+                        if (ts.Id == tslot.Id)
+                        {
+                            s.Calendar.Remove(ts);
+                            break;
+                        }
+                    }
+                    StudentService.Update(s.Id, s);
+                    break;
+                }   
+            }
+                return true;
+        }
+        catch (Exception e)
+        {
+            SLog.Write("Slot Deletion Failed." + e.Message);
+            return false;
+        }
+    }
+
+}

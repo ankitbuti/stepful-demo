@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  stepful:
+    image: ${DOCKER_REGISTRY-}stepful
+    build:
+      context: .
+      dockerfile: Stepful/Dockerfile
