@@ -4,6 +4,7 @@
 @rendermode InteractiveServer
 @inject IJSRuntime JS
 @inject ICoachService CoachService
+@inject IStudentService StudentService
 @inject ToastService ToastService
 
 <PageTitle>Coach</PageTitle>
@@ -39,7 +40,7 @@ else
             {
                 if (tslot.IsOpen)
                 {
-                    <li>@tslot.StartTime.ToLocalTime()</li>
+                    <li>@tslot.StartTime.ToLocalTime() - <span class="btn-primary" Clicked="@(()=>DeleteSlot(tslot))">Delete</span></li>
                 }
             }
         </ol>
@@ -52,8 +53,8 @@ else
             {
                 if (!tslot.IsOpen)
                 {
-                    <li>@tslot.StartTime.ToLocalTime() with @tslot.PeerUserFullName at @tslot.PeerPhone
-
+                    <li>
+                        @tslot.StartTime.ToLocalTime() with @tslot.PeerUserFullName at @tslot.PeerPhone -  <span class="btn-primary" Clicked="@(()=>CancelBooking(tslot))">Cancel Booking</span>
                         </li>
                 }
             }
@@ -70,7 +71,7 @@ else
 @if (SelectedCoach != null)
 {
     <div class="card">
-        <div class="card-body">
+        <div class="card-body" >
             <h5 class="card-title">Pick a Date &amp; Time</h5>
             <p class="card-text">
 
@@ -105,6 +106,8 @@ else
 @code {
     private Coach SelectedCoach { get; set; }
     private List<Coach> Coaches { get; set; }
+    private List<Student> Students { get; set; }
+
 
 
     private EditContext EditContext;
@@ -152,6 +155,9 @@ else
         {
             SelectedCoach = Coaches[0];
         }
+
+        var y = await StudentService.GetAllAsync();
+        Students = y.ToList();
     }
 
     // TBD Verify Algo
@@ -168,6 +174,67 @@ else
         }
         //ShowToast("New Slot Added.");
         ToastService.ShowToast("New Slot Added.");
+    }
+
+    private bool DeleteSlot(TimeSlot tslot)
+    {
+        if (tslot == null)
+            return false;
+
+        if (!string.IsNullOrEmpty(tslot.PeerUserFullName))
+            return false;
+
+        try{
+            SelectedCoach.Calendar.Remove(tslot);
+            CoachService.Update(SelectedCoach.Id, SelectedCoach);
+            return true;
+        }
+        catch(Exception e)
+        {
+            SLog.Write("Slot Deletion Failed." + e.Message);
+            return false;
+        }
+
+    }
+
+    private bool CancelBooking(TimeSlot tslot)
+    {
+        if (tslot == null)
+            return false;
+
+        if (string.IsNullOrEmpty(tslot.PeerUserFullName))
+            return false;
+
+        try
+        {
+            SelectedCoach.Calendar.Remove(tslot);
+            CoachService.Update(SelectedCoach.Id, SelectedCoach);
+
+
+            foreach (Student s in Students)
+            {
+                if (string.Equals(s.FullName, tslot.PeerUserFullName))
+                {
+                    foreach (TimeSlot ts in s.Calendar)
+                    {
+                        if (ts.Id == tslot.Id)
+                        {
+                            ts.PeerUserFullName = String.Empty;
+                            ts.PeerPhone = String.Empty;
+                            break;
+                        }
+                    }
+                    StudentService.Update(s.Id, s);
+                    break;
+                }   
+            }
+                return true;
+        }
+        catch (Exception e)
+        {
+            SLog.Write("Slot Deletion Failed." + e.Message);
+            return false;
+        }
     }
 
 }

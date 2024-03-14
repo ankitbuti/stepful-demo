@@ -246,7 +246,7 @@ public class CoachService : ICoachService
 
         foreach(TimeSlot existing in c.Calendar)
         {                                                                                                                                 
-           if(proposedSlot.StartTime > existing.StartTime && proposedSlot.StartTime < existing.EndTime)
+           if(proposedSlot.StartTime >= existing.StartTime && proposedSlot.StartTime <= existing.EndTime)
            {
                 overlap = true; break;
            }
